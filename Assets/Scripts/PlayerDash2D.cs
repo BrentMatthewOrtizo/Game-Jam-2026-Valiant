@@ -17,6 +17,10 @@ public class PlayerDash2D : MonoBehaviour
     [SerializeField] private float dashRefreshLockTime = 0.08f;
     [SerializeField] private float groundedRefreshMinTime = 0.04f;
 
+    [Header("Dash Wall Unstick")]
+    [SerializeField] private float wallUnstickDownSpeed = 2.5f;
+    [SerializeField] private float wallUnstickTime = 0.06f;
+
     public bool IsDashing { get; private set; }
 
     private Rigidbody2D rb;
@@ -25,31 +29,24 @@ public class PlayerDash2D : MonoBehaviour
     private Vector2 moveInput;
     private bool dashQueued;
 
-    private float defaultGravityScale;
-    private float defaultDamping;
-
     private bool hasAirDashed;
     private float dashCooldownTimer;
     private float dashRefreshLockTimer;
     private float groundedTimer;
 
     private Coroutine dashRoutine;
+    private Coroutine wallUnstickRoutine;
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         coll = GetComponent<PlayerCollision2D>();
-        defaultGravityScale = rb.gravityScale;
-        defaultDamping = rb.linearDamping;
     }
 
     private void Update()
     {
-        if (dashCooldownTimer > 0f)
-            dashCooldownTimer -= Time.deltaTime;
-
-        if (dashRefreshLockTimer > 0f)
-            dashRefreshLockTimer -= Time.deltaTime;
+        if (dashCooldownTimer > 0f) dashCooldownTimer -= Time.deltaTime;
+        if (dashRefreshLockTimer > 0f) dashRefreshLockTimer -= Time.deltaTime;
 
         if (coll.OnGround) groundedTimer += Time.deltaTime;
         else groundedTimer = 0f;
@@ -76,8 +73,7 @@ public class PlayerDash2D : MonoBehaviour
 
     public void OnDash(InputValue value)
     {
-        if (value.isPressed)
-            dashQueued = true;
+        if (value.isPressed) dashQueued = true;
     }
 
     private void TryDash()
@@ -99,8 +95,8 @@ public class PlayerDash2D : MonoBehaviour
         if (!coll.OnGround && allowAirDash)
             hasAirDashed = true;
 
-        if (dashRoutine != null)
-            StopCoroutine(dashRoutine);
+        if (dashRoutine != null) StopCoroutine(dashRoutine);
+        if (wallUnstickRoutine != null) StopCoroutine(wallUnstickRoutine);
 
         dashRoutine = StartCoroutine(DashRoutine(dir));
     }
@@ -119,14 +115,44 @@ public class PlayerDash2D : MonoBehaviour
         rb.linearVelocity = Vector2.zero;
         rb.linearVelocity = dir * dashSpeed;
 
-        yield return new WaitForSeconds(dashTime);
+        float t = 0f;
+        while (t < dashTime)
+        {
+            if (coll.OnWall && !coll.OnGround)
+                break;
 
+            t += Time.deltaTime;
+            yield return null;
+        }
+        
         rb.linearDamping = dashEndDamping;
-        yield return new WaitForSeconds(0.03f);
-
-        rb.linearDamping = prevDamping;
         rb.gravityScale = prevGravity;
 
+        
+        if (coll.OnWall && !coll.OnGround)
+        {
+            float y = rb.linearVelocity.y;
+            if (y > 0f) y = 0f;
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, y - 2f);
+        }
+
+        yield return new WaitForSeconds(0.03f);
+        rb.linearDamping = prevDamping;
+
         IsDashing = false;
+    }
+
+    private IEnumerator WallUnstickRoutine()
+    {
+        float t = wallUnstickTime;
+
+        while (t > 0f && coll.OnWall && !coll.OnGround)
+        {
+            if (rb.linearVelocity.y > -wallUnstickDownSpeed)
+                rb.linearVelocity = new Vector2(rb.linearVelocity.x, -wallUnstickDownSpeed);
+
+            t -= Time.deltaTime;
+            yield return null;
+        }
     }
 }
