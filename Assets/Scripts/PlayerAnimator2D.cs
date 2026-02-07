@@ -1,5 +1,8 @@
 using UnityEngine;
 
+[RequireComponent(typeof(Animator))]
+[RequireComponent(typeof(Rigidbody2D))]
+[RequireComponent(typeof(PlayerCollision2D))]
 public class PlayerAnimator2D : MonoBehaviour
 {
     [SerializeField] private Animator animator;
@@ -7,25 +10,37 @@ public class PlayerAnimator2D : MonoBehaviour
     private Rigidbody2D rb;
     private PlayerCollision2D coll;
     private PlayerDash2D dash;
+    private PlayerMovement2D move;
 
     private void Awake()
     {
         if (!animator) animator = GetComponent<Animator>();
-        rb = GetComponentInParent<Rigidbody2D>();
-        coll = GetComponentInParent<PlayerCollision2D>();
-        dash = GetComponentInParent<PlayerDash2D>();
+        rb = GetComponent<Rigidbody2D>();
+        coll = GetComponent<PlayerCollision2D>();
+        dash = GetComponent<PlayerDash2D>();
+        move = GetComponent<PlayerMovement2D>();
     }
 
     private void Update()
     {
-        animator.SetFloat("Speed", Mathf.Abs(rb.linearVelocity.x));
-        animator.SetBool("OnGround", coll.OnGround);
-        animator.SetBool("Dashing", dash != null && dash.IsDashing);
+        float vx = rb.linearVelocity.x;
 
-        if (Mathf.Abs(rb.linearVelocity.x) > 0.01f)
+        bool isDashing = dash != null && dash.IsDashing;
+        bool onGround = coll.OnGround;
+
+        bool wallSliding = !isDashing && move != null && move.IsWallSliding;
+        bool wallGrabbing = !isDashing && !onGround && coll.OnWall && !wallSliding;
+
+        animator.SetFloat("Speed", Mathf.Abs(vx));
+        animator.SetBool("OnGround", onGround);
+        animator.SetBool("Dashing", isDashing);
+        animator.SetBool("WallSliding", wallSliding);
+        animator.SetBool("WallGrabbing", wallGrabbing);
+
+        if (Mathf.Abs(vx) > 0.01f)
         {
             Vector3 s = transform.localScale;
-            s.x = Mathf.Sign(rb.linearVelocity.x);
+            s.x = Mathf.Sign(vx);
             transform.localScale = s;
         }
     }

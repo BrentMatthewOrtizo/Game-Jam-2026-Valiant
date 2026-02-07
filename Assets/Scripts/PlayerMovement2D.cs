@@ -25,6 +25,8 @@ public class PlayerMovement2D : MonoBehaviour
     [SerializeField] private float wallJumpLockTime = 0.12f;
     [SerializeField] private float wallJumpLerp = 10f;
 
+    public bool IsWallSliding => isWallSliding;
+
     private Rigidbody2D rb;
     private PlayerCollision2D coll;
     private PlayerDash2D dash;
@@ -88,9 +90,7 @@ public class PlayerMovement2D : MonoBehaviour
         {
             rb.gravityScale = wallSlideGravityScale;
 
-            float y = rb.linearVelocity.y;
-            if (y < -wallSlideSpeed) y = -wallSlideSpeed;
-
+            float y = Mathf.Min(rb.linearVelocity.y, -wallSlideSpeed);
             rb.linearVelocity = new Vector2(0f, y);
             return;
         }
