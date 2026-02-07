@@ -30,7 +30,7 @@ public class PlayerAnimator2D : MonoBehaviour
         bool onGround = coll.OnGround;
 
         bool wallSliding = !isDashing && move != null && move.IsWallSliding;
-        bool wallGrabbing = !isDashing && !onGround && coll.OnWall && !wallSliding;
+        bool wallGrabbing = false;
 
         animator.SetFloat("Speed", Mathf.Abs(vx));
         animator.SetFloat("YVelocity", vy);
