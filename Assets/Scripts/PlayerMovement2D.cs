@@ -27,6 +27,7 @@ public class PlayerMovement2D : MonoBehaviour
 
     private Rigidbody2D rb;
     private PlayerCollision2D coll;
+    private PlayerDash2D dash;
 
     private Vector2 moveInput;
 
@@ -43,6 +44,7 @@ public class PlayerMovement2D : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         coll = GetComponent<PlayerCollision2D>();
+        dash = GetComponent<PlayerDash2D>();
         defaultGravityScale = rb.gravityScale;
     }
 
@@ -55,11 +57,19 @@ public class PlayerMovement2D : MonoBehaviour
         if (wallJumpLockTimer > 0f) wallJumpLockTimer -= Time.deltaTime;
         if (wallControlLockTimer > 0f) wallControlLockTimer -= Time.deltaTime;
 
+        if (dash != null && dash.IsDashing)
+        {
+            isWallSliding = false;
+            return;
+        }
+
         isWallSliding = wallJumpLockTimer <= 0f && ShouldWallSlide();
     }
 
     private void FixedUpdate()
     {
+        if (dash != null && dash.IsDashing) return;
+
         bool wantsJump = jumpBufferTimer > 0f;
 
         if (wantsJump && !coll.OnGround && coll.OnWall)
@@ -113,7 +123,7 @@ public class PlayerMovement2D : MonoBehaviour
         else if (coll.OnLeftWall) awayX = 1f;
         else awayX = moveInput.x == 0f ? 1f : -Mathf.Sign(moveInput.x);
 
-        rb.linearVelocity = new Vector2(0f, 0f);
+        rb.linearVelocity = Vector2.zero;
         rb.linearVelocity = new Vector2(awayX * wallJumpForce.x, wallJumpForce.y);
 
         wallJumpLockTimer = wallJumpLockTime;
