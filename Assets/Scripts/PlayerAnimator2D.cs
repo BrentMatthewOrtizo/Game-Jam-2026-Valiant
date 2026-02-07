@@ -24,6 +24,7 @@ public class PlayerAnimator2D : MonoBehaviour
     private void Update()
     {
         float vx = rb.linearVelocity.x;
+        float vy = rb.linearVelocity.y;
 
         bool isDashing = dash != null && dash.IsDashing;
         bool onGround = coll.OnGround;
@@ -32,6 +33,7 @@ public class PlayerAnimator2D : MonoBehaviour
         bool wallGrabbing = !isDashing && !onGround && coll.OnWall && !wallSliding;
 
         animator.SetFloat("Speed", Mathf.Abs(vx));
+        animator.SetFloat("YVelocity", vy);
         animator.SetBool("OnGround", onGround);
         animator.SetBool("Dashing", isDashing);
         animator.SetBool("WallSliding", wallSliding);
