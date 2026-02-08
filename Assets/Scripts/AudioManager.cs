@@ -8,6 +8,7 @@ public class AudioManager : MonoBehaviour
     [Header("BGM Clips")]
     [SerializeField] private AudioClip titleBgm;
     [SerializeField] private AudioClip level1Bgm;
+    [SerializeField] private AudioClip endBgm;
 
     [Header("SFX Clips")]
     [SerializeField] private AudioClip sfxDash;
@@ -33,11 +34,15 @@ public class AudioManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
 
         bgmSource = GetComponent<AudioSource>();
+        if (bgmSource == null) bgmSource = gameObject.AddComponent<AudioSource>();
         bgmSource.loop = true;
         bgmSource.playOnAwake = false;
         bgmSource.volume = bgmVolume;
 
+        SceneManager.sceneLoaded -= OnSceneLoaded;
         SceneManager.sceneLoaded += OnSceneLoaded;
+
+        OnSceneLoaded(SceneManager.GetActiveScene(), LoadSceneMode.Single);
     }
 
     private void OnDestroy()
@@ -48,26 +53,33 @@ public class AudioManager : MonoBehaviour
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        if (scene.name == "TitleScreen")
+        switch (scene.name)
         {
-            PlayBgm(titleBgm);
-        }
-        else if (scene.name == "Level1")
-        {
-            PlayBgm(level1Bgm);
+            case "TitleScreen":
+                PlayBgm(titleBgm);
+                break;
+
+            case "Level1":
+                PlayBgm(level1Bgm);
+                break;
+
+            case "EndScreen":
+            case "EndScene":
+                PlayBgm(endBgm != null ? endBgm : titleBgm);
+                break;
         }
     }
 
     private void PlayBgm(AudioClip clip)
     {
         if (clip == null) return;
-        if (bgmSource.clip == clip && bgmSource.isPlaying) return;
 
+        bgmSource.Stop();
         bgmSource.clip = clip;
         bgmSource.volume = bgmVolume;
         bgmSource.Play();
     }
-    
+
     public void PlayDash() => PlaySfx(sfxDash);
     public void PlayJump() => PlaySfx(sfxJump);
     public void PlayHitHurt() => PlaySfx(sfxHitHurt);

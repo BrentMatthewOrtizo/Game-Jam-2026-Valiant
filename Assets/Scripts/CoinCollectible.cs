@@ -8,12 +8,14 @@ public class CoinCollectible : MonoBehaviour
     private static CoinUI cachedCoinUI;
     private static GreedMeter cachedGreed;
     private static FearMeter cachedFear;
+    private static CoinManager cachedCoinManager;
 
     private void Awake()
     {
         if (cachedCoinUI == null) cachedCoinUI = FindObjectOfType<CoinUI>();
         if (cachedGreed == null) cachedGreed = FindObjectOfType<GreedMeter>();
         if (cachedFear == null) cachedFear = FindObjectOfType<FearMeter>();
+        if (cachedCoinManager == null) cachedCoinManager = FindObjectOfType<CoinManager>();
     }
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -33,6 +35,9 @@ public class CoinCollectible : MonoBehaviour
         {
             cachedFear.ReduceFearFromCoin();
         }
+        
+        if (cachedCoinManager != null)
+            cachedCoinManager.OnCoinCollected(value);
         
         Destroy(gameObject);
         if (AudioManager.Instance != null) AudioManager.Instance.PlayPickupCoin();
