@@ -8,18 +8,16 @@ public class PlayerDash2D : MonoBehaviour
 {
     [Header("Dash")]
     [SerializeField] private float dashSpeed = 22f;
-    [SerializeField] private float dashTime = 0.12f;
+    [SerializeField] private float dashDuration = 0.30f;
     [SerializeField] private float dashCooldown = 2f;
-    [SerializeField] private float dashEndDamping = 8f;
     [SerializeField] private bool allowAirDash = true;
 
-    [Header("Safety")]
-    [SerializeField] private float dashRefreshLockTime = 0.08f;
-    [SerializeField] private float groundedRefreshMinTime = 0.04f;
+    [Header("Dash VFX (child on player)")]
+    [SerializeField] private ParticleSystem dashParticle;
+    [SerializeField] private Vector2 dashVfxLocalOffset = new Vector2(-0.5f, 0f);
 
-    [Header("Dash Wall Unstick")]
-    [SerializeField] private float wallUnstickDownSpeed = 2.5f;
-    [SerializeField] private float wallUnstickTime = 0.06f;
+    [Header("Ghost Trail")]
+    [SerializeField] private GhostTrail ghostTrail;
 
     public bool IsDashing { get; private set; }
 
@@ -30,34 +28,28 @@ public class PlayerDash2D : MonoBehaviour
     private bool dashQueued;
 
     private bool hasAirDashed;
-    private float dashCooldownTimer;
-    private float dashRefreshLockTimer;
-    private float groundedTimer;
+    private float cooldownTimer;
+    private float defaultGravity;
 
     private Coroutine dashRoutine;
-    private Coroutine wallUnstickRoutine;
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         coll = GetComponent<PlayerCollision2D>();
+        defaultGravity = rb.gravityScale;
+
+        if (dashParticle != null)
+            dashParticle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
     }
 
     private void Update()
     {
-        if (dashCooldownTimer > 0f) dashCooldownTimer -= Time.deltaTime;
-        if (dashRefreshLockTimer > 0f) dashRefreshLockTimer -= Time.deltaTime;
+        if (cooldownTimer > 0f)
+            cooldownTimer -= Time.deltaTime;
 
-        if (coll.OnGround) groundedTimer += Time.deltaTime;
-        else groundedTimer = 0f;
-
-        if (!IsDashing &&
-            dashRefreshLockTimer <= 0f &&
-            groundedTimer >= groundedRefreshMinTime &&
-            rb.linearVelocity.y <= 0.01f)
-        {
+        if (coll.OnGround)
             hasAirDashed = false;
-        }
 
         if (dashQueued)
         {
@@ -66,27 +58,20 @@ public class PlayerDash2D : MonoBehaviour
         }
     }
 
-    public void OnMove(InputValue value)
-    {
-        moveInput = value.Get<Vector2>();
-    }
-
-    public void OnDash(InputValue value)
-    {
-        if (value.isPressed) dashQueued = true;
-    }
+    public void OnMove(InputValue value) => moveInput = value.Get<Vector2>();
+    public void OnDash(InputValue value) { if (value.isPressed) dashQueued = true; }
 
     private void TryDash()
     {
         if (IsDashing) return;
-        if (dashCooldownTimer > 0f) return;
+        if (cooldownTimer > 0f) return;
         if (!coll.OnGround && allowAirDash && hasAirDashed) return;
 
         Vector2 dir = moveInput;
 
         if (dir.sqrMagnitude < 0.01f)
         {
-            float facing = transform.localScale.x >= 0 ? 1f : -1f;
+            float facing = transform.localScale.x >= 0f ? 1f : -1f;
             dir = new Vector2(facing, 0f);
         }
 
@@ -95,8 +80,10 @@ public class PlayerDash2D : MonoBehaviour
         if (!coll.OnGround && allowAirDash)
             hasAirDashed = true;
 
-        if (dashRoutine != null) StopCoroutine(dashRoutine);
-        if (wallUnstickRoutine != null) StopCoroutine(wallUnstickRoutine);
+        cooldownTimer = dashCooldown;
+
+        if (dashRoutine != null)
+            StopCoroutine(dashRoutine);
 
         dashRoutine = StartCoroutine(DashRoutine(dir));
     }
@@ -104,55 +91,38 @@ public class PlayerDash2D : MonoBehaviour
     private IEnumerator DashRoutine(Vector2 dir)
     {
         IsDashing = true;
-        dashCooldownTimer = dashCooldown;
-        dashRefreshLockTimer = dashRefreshLockTime;
-
-        float prevGravity = rb.gravityScale;
-        float prevDamping = rb.linearDamping;
-
+        
         rb.gravityScale = 0f;
-        rb.linearDamping = 0f;
         rb.linearVelocity = Vector2.zero;
         rb.linearVelocity = dir * dashSpeed;
 
-        float t = 0f;
-        while (t < dashTime)
-        {
-            if (coll.OnWall && !coll.OnGround)
-                break;
-
-            t += Time.deltaTime;
-            yield return null;
-        }
         
-        rb.linearDamping = dashEndDamping;
-        rb.gravityScale = prevGravity;
-
+        PlayDashParticle(dir);
         
-        if (coll.OnWall && !coll.OnGround)
-        {
-            float y = rb.linearVelocity.y;
-            if (y > 0f) y = 0f;
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, y - 2f);
-        }
+        if (ghostTrail != null)
+            ghostTrail.ShowGhost();
 
-        yield return new WaitForSeconds(0.03f);
-        rb.linearDamping = prevDamping;
-
+        yield return new WaitForSeconds(dashDuration);
+        
+        rb.gravityScale = defaultGravity;
         IsDashing = false;
+        dashRoutine = null;
+
+        if (dashParticle != null)
+            dashParticle.Stop(true, ParticleSystemStopBehavior.StopEmitting);
     }
 
-    private IEnumerator WallUnstickRoutine()
+    private void PlayDashParticle(Vector2 dir)
     {
-        float t = wallUnstickTime;
+        if (dashParticle == null) return;
+        
+        Vector2 off = dashVfxLocalOffset;
+        if (dir.x < -0.01f) off.x = -Mathf.Abs(off.x);
+        else if (dir.x > 0.01f) off.x = Mathf.Abs(off.x);
 
-        while (t > 0f && coll.OnWall && !coll.OnGround)
-        {
-            if (rb.linearVelocity.y > -wallUnstickDownSpeed)
-                rb.linearVelocity = new Vector2(rb.linearVelocity.x, -wallUnstickDownSpeed);
+        dashParticle.transform.localPosition = off;
 
-            t -= Time.deltaTime;
-            yield return null;
-        }
+        dashParticle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        dashParticle.Play(true);
     }
 }
