@@ -9,13 +9,14 @@ public class PlayerCollision2D : MonoBehaviour
     [SerializeField] private float collisionRadius = 0.25f;
     [SerializeField] private Vector2 bottomOffset = new Vector2(0f, -0.5f);
     [SerializeField] private Vector2 rightOffset = new Vector2(0.5f, 0f);
-    [SerializeField] private Vector2 leftOffset = new Vector2(-0.5f, 0f);
+    [SerializeField] private Vector2 leftOffset  = new Vector2(-0.5f, 0f);
 
     public bool OnGround { get; private set; }
     public bool OnWall { get; private set; }
     public bool OnRightWall { get; private set; }
     public bool OnLeftWall { get; private set; }
-    public int WallSide { get; private set; } = 1;
+    
+    public int WallSide { get; private set; }
 
     private void FixedUpdate()
     {
@@ -24,11 +25,13 @@ public class PlayerCollision2D : MonoBehaviour
         OnGround = Physics2D.OverlapCircle(pos + bottomOffset, collisionRadius, groundLayer);
 
         OnRightWall = Physics2D.OverlapCircle(pos + rightOffset, collisionRadius, groundLayer);
-        OnLeftWall = Physics2D.OverlapCircle(pos + leftOffset, collisionRadius, groundLayer);
+        OnLeftWall  = Physics2D.OverlapCircle(pos + leftOffset,  collisionRadius, groundLayer);
 
         OnWall = OnRightWall || OnLeftWall;
 
-        WallSide = OnRightWall ? -1 : 1;
+        if (OnRightWall) WallSide = -1;
+        else if (OnLeftWall) WallSide = 1;
+        else WallSide = 0;
     }
 
     private void OnDrawGizmosSelected()

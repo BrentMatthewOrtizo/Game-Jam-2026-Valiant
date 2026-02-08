@@ -78,10 +78,8 @@ public class PlayerMovement2D : MonoBehaviour
         {
             jumpBufferTimer = 0f;
             DoWallJump();
-            return;
         }
-
-        if (wantsJump && coyoteTimer > 0f)
+        else if (wantsJump && coyoteTimer > 0f)
         {
             jumpBufferTimer = 0f;
             coyoteTimer = 0f;
@@ -92,10 +90,7 @@ public class PlayerMovement2D : MonoBehaviour
         {
             rb.gravityScale = wallSlideGravityScale;
 
-            float y = rb.linearVelocity.y;
-            if (y > 0f) y = 0f;
-            y = Mathf.Max(y, -wallSlideSpeed);
-
+            float y = Mathf.Min(rb.linearVelocity.y, -wallSlideSpeed);
             rb.linearVelocity = new Vector2(0f, y);
             return;
         }
@@ -123,9 +118,10 @@ public class PlayerMovement2D : MonoBehaviour
 
     private void DoWallJump()
     {
-        float awayX = coll.OnRightWall ? -1f : 1f;
-
-        rb.gravityScale = defaultGravityScale;
+        float awayX;
+        if (coll.OnRightWall) awayX = -1f;
+        else if (coll.OnLeftWall) awayX = 1f;
+        else awayX = moveInput.x == 0f ? 1f : -Mathf.Sign(moveInput.x);
 
         rb.linearVelocity = Vector2.zero;
         rb.linearVelocity = new Vector2(awayX * wallJumpForce.x, wallJumpForce.y);
@@ -140,11 +136,12 @@ public class PlayerMovement2D : MonoBehaviour
     {
         if (coll.OnGround) return false;
         if (!coll.OnWall) return false;
+        if (rb.linearVelocity.y > 0.1f) return false;
 
-        bool pressingIntoRightWall = coll.OnRightWall && moveInput.x > wallStickInput;
-        bool pressingIntoLeftWall = coll.OnLeftWall && moveInput.x < -wallStickInput;
+        if (coll.OnRightWall && moveInput.x > wallStickInput) return true;
+        if (coll.OnLeftWall && moveInput.x < -wallStickInput) return true;
 
-        return pressingIntoRightWall || pressingIntoLeftWall;
+        return false;
     }
 
     public void OnMove(InputValue value)
