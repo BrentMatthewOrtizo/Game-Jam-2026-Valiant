@@ -4,7 +4,7 @@ public class PlayButton : MonoBehaviour
 {
     [SerializeField] private SceneLoader sceneLoader;
 
-    public void OnClick()
+    public void OnClickPlay()
     {
         Debug.Log("PlayButton: OnClickPlay fired!");
 
