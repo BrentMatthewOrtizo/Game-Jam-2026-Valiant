@@ -1,19 +1,10 @@
 fileFormatVersion: 2
-guid: b3cd5d542a76f42c0a5de3f12972ba71
+guid: 7424937e605a040928e99c8a1beb3a80
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 4316393771384486332
-    second: Valient_MC_Dash_0
-  - first:
-      213: 1099138540907293996
-    second: Valient_MC_Dash_1
-  - first:
-      213: -3633405696436361102
-    second: Valient_MC_Dash_2
-  - first:
-      213: 6568454242603152650
-    second: Valient_MC_Dash_3
+      213: -1331396722211829178
+    second: fearmeter2_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -109,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Valient_MC_Dash_0
+      name: fearmeter2_0
       rect:
         serializedVersion: 2
-        x: 4
+        x: 0
         y: 0
-        width: 22
-        height: 28
+        width: 64
+        height: 8
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -124,74 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: cb9b41e0449e6eb30800000000000000
-      internalID: 4316393771384486332
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Valient_MC_Dash_1
-      rect:
-        serializedVersion: 2
-        x: 36
-        y: 0
-        width: 22
-        height: 28
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: c2d68b1fdace04f00800000000000000
-      internalID: 1099138540907293996
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Valient_MC_Dash_2
-      rect:
-        serializedVersion: 2
-        x: 68
-        y: 0
-        width: 22
-        height: 28
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 278a70b05cc839dc0800000000000000
-      internalID: -3633405696436361102
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Valient_MC_Dash_3
-      rect:
-        serializedVersion: 2
-        x: 100
-        y: 0
-        width: 22
-        height: 28
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: a05b4cd1556d72b50800000000000000
-      internalID: 6568454242603152650
+      spriteID: 64ac1753cbde58de0800000000000000
+      internalID: -1331396722211829178
       vertices: []
       indices: 
       edges: []
@@ -210,10 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Valient_MC_Dash_0: 4316393771384486332
-      Valient_MC_Dash_1: 1099138540907293996
-      Valient_MC_Dash_2: -3633405696436361102
-      Valient_MC_Dash_3: 6568454242603152650
+      fearmeter2_0: -1331396722211829178
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
