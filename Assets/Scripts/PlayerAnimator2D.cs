@@ -1,6 +1,5 @@
 using UnityEngine;
 
-[RequireComponent(typeof(Animator))]
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(PlayerCollision2D))]
 public class PlayerAnimator2D : MonoBehaviour
@@ -12,9 +11,18 @@ public class PlayerAnimator2D : MonoBehaviour
     private PlayerDash2D dash;
     private PlayerMovement2D move;
 
+    private static readonly int SpeedHash = Animator.StringToHash("Speed");
+    private static readonly int YVelHash = Animator.StringToHash("YVelocity");
+    private static readonly int OnGroundHash = Animator.StringToHash("OnGround");
+    private static readonly int DashingHash = Animator.StringToHash("Dashing");
+    private static readonly int WallSlidingHash = Animator.StringToHash("WallSliding");
+    private static readonly int WallGrabbingHash = Animator.StringToHash("WallGrabbing");
+    private static readonly int IsDeadHash = Animator.StringToHash("IsDead");
+
     private void Awake()
     {
-        if (!animator) animator = GetComponent<Animator>();
+        if (!animator) animator = GetComponentInChildren<Animator>(true);
+
         rb = GetComponent<Rigidbody2D>();
         coll = GetComponent<PlayerCollision2D>();
         dash = GetComponent<PlayerDash2D>();
@@ -23,6 +31,9 @@ public class PlayerAnimator2D : MonoBehaviour
 
     private void Update()
     {
+        if (animator != null && animator.GetBool(IsDeadHash))
+            return;
+
         float vx = rb.linearVelocity.x;
         float vy = rb.linearVelocity.y;
 
@@ -32,12 +43,12 @@ public class PlayerAnimator2D : MonoBehaviour
         bool wallSliding = !isDashing && move != null && move.IsWallSliding;
         bool wallGrabbing = !isDashing && !onGround && coll.OnWall && !wallSliding;
 
-        animator.SetFloat("Speed", Mathf.Abs(vx));
-        animator.SetFloat("YVelocity", vy);
-        animator.SetBool("OnGround", onGround);
-        animator.SetBool("Dashing", isDashing);
-        animator.SetBool("WallSliding", wallSliding);
-        animator.SetBool("WallGrabbing", wallGrabbing);
+        animator.SetFloat(SpeedHash, Mathf.Abs(vx));
+        animator.SetFloat(YVelHash, vy);
+        animator.SetBool(OnGroundHash, onGround);
+        animator.SetBool(DashingHash, isDashing);
+        animator.SetBool(WallSlidingHash, wallSliding);
+        animator.SetBool(WallGrabbingHash, wallGrabbing);
 
         if (Mathf.Abs(vx) > 0.01f)
         {

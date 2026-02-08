@@ -3,20 +3,22 @@ using UnityEngine;
 public class PlayerCollision2D : MonoBehaviour
 {
     [Header("Layers")]
-    [SerializeField] private LayerMask solidGroundLayer;      
-    [SerializeField] private LayerMask oneWayPlatformLayer;   
+    [SerializeField] private LayerMask solidGroundLayer;
+    [SerializeField] private LayerMask oneWayPlatformLayer;
 
     [Header("Collision Checks")]
-    [SerializeField] private float collisionRadius = 0.25f;
-    [SerializeField] private Vector2 bottomOffset = new Vector2(0f, -0.5f);
-    [SerializeField] private Vector2 rightOffset = new Vector2(0.5f, 0f);
-    [SerializeField] private Vector2 leftOffset  = new Vector2(-0.5f, 0f);
+    [SerializeField] private float collisionRadius = 0.18f;
+    [SerializeField] private Vector2 bottomOffset = new Vector2(0f, -0.55f);
+    [SerializeField] private float footSeparation = 0.22f;
 
-    public bool OnGround { get; private set; }        
-    public bool OnSolidGround { get; private set; }   
-    public bool OnOneWay { get; private set; }       
+    [SerializeField] private Vector2 rightOffset = new Vector2(0.52f, 0f);
+    [SerializeField] private Vector2 leftOffset  = new Vector2(-0.52f, 0f);
 
-    public bool OnWall { get; private set; }          
+    public bool OnGround { get; private set; }
+    public bool OnSolidGround { get; private set; }
+    public bool OnOneWay { get; private set; }
+
+    public bool OnWall { get; private set; }
     public bool OnRightWall { get; private set; }
     public bool OnLeftWall { get; private set; }
     public int WallSide { get; private set; }
@@ -25,14 +27,21 @@ public class PlayerCollision2D : MonoBehaviour
     {
         Vector2 pos = transform.position;
 
-        
-        OnSolidGround = Physics2D.OverlapCircle(pos + bottomOffset, collisionRadius, solidGroundLayer);
-        OnOneWay      = Physics2D.OverlapCircle(pos + bottomOffset, collisionRadius, oneWayPlatformLayer);
+        Vector2 footL = pos + bottomOffset + new Vector2(-footSeparation, 0f);
+        Vector2 footR = pos + bottomOffset + new Vector2( footSeparation, 0f);
 
+        bool solidL = Physics2D.OverlapCircle(footL, collisionRadius, solidGroundLayer);
+        bool solidR = Physics2D.OverlapCircle(footR, collisionRadius, solidGroundLayer);
+
+        bool oneWayL = Physics2D.OverlapCircle(footL, collisionRadius, oneWayPlatformLayer);
+        bool oneWayR = Physics2D.OverlapCircle(footR, collisionRadius, oneWayPlatformLayer);
+
+        OnSolidGround = solidL || solidR;
+        OnOneWay = oneWayL || oneWayR;
         OnGround = OnSolidGround || OnOneWay;
-        
-        OnRightWall = Physics2D.OverlapCircle(pos + rightOffset, collisionRadius, solidGroundLayer);
-        OnLeftWall  = Physics2D.OverlapCircle(pos + leftOffset,  collisionRadius, solidGroundLayer);
+
+        OnRightWall = !OnGround && Physics2D.OverlapCircle(pos + rightOffset, collisionRadius, solidGroundLayer);
+        OnLeftWall  = !OnGround && Physics2D.OverlapCircle(pos + leftOffset,  collisionRadius, solidGroundLayer);
 
         OnWall = OnRightWall || OnLeftWall;
 
@@ -44,9 +53,14 @@ public class PlayerCollision2D : MonoBehaviour
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;
-        Vector2 pos = transform.position;
 
-        Gizmos.DrawWireSphere(pos + bottomOffset, collisionRadius);
+        Vector2 pos = transform.position;
+        Vector2 footL = pos + bottomOffset + new Vector2(-footSeparation, 0f);
+        Vector2 footR = pos + bottomOffset + new Vector2( footSeparation, 0f);
+
+        Gizmos.DrawWireSphere(footL, collisionRadius);
+        Gizmos.DrawWireSphere(footR, collisionRadius);
+
         Gizmos.DrawWireSphere(pos + rightOffset, collisionRadius);
         Gizmos.DrawWireSphere(pos + leftOffset, collisionRadius);
     }

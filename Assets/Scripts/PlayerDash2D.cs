@@ -45,8 +45,7 @@ public class PlayerDash2D : MonoBehaviour
 
     private void Update()
     {
-        if (cooldownTimer > 0f)
-            cooldownTimer -= Time.deltaTime;
+        if (cooldownTimer > 0f) cooldownTimer -= Time.deltaTime;
 
         if (coll.OnGround)
             hasAirDashed = false;
@@ -58,8 +57,15 @@ public class PlayerDash2D : MonoBehaviour
         }
     }
 
-    public void OnMove(InputValue value) => moveInput = value.Get<Vector2>();
-    public void OnDash(InputValue value) { if (value.isPressed) dashQueued = true; }
+    public void SetMoveInput(Vector2 input)
+    {
+        moveInput = input;
+    }
+
+    public void OnDash(InputValue value)
+    {
+        if (value.isPressed) dashQueued = true;
+    }
 
     private void TryDash()
     {
@@ -91,19 +97,18 @@ public class PlayerDash2D : MonoBehaviour
     private IEnumerator DashRoutine(Vector2 dir)
     {
         IsDashing = true;
-        
+
         rb.gravityScale = 0f;
         rb.linearVelocity = Vector2.zero;
         rb.linearVelocity = dir * dashSpeed;
 
-        
         PlayDashParticle(dir);
-        
+
         if (ghostTrail != null)
             ghostTrail.ShowGhost();
 
         yield return new WaitForSeconds(dashDuration);
-        
+
         rb.gravityScale = defaultGravity;
         IsDashing = false;
         dashRoutine = null;
@@ -115,7 +120,7 @@ public class PlayerDash2D : MonoBehaviour
     private void PlayDashParticle(Vector2 dir)
     {
         if (dashParticle == null) return;
-        
+
         Vector2 off = dashVfxLocalOffset;
         if (dir.x < -0.01f) off.x = -Mathf.Abs(off.x);
         else if (dir.x > 0.01f) off.x = Mathf.Abs(off.x);

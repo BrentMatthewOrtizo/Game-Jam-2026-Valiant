@@ -148,12 +148,19 @@ public class PlayerMovement2D : MonoBehaviour
         return false;
     }
 
-    public void OnMove(InputValue value) => moveInput = value.Get<Vector2>();
+    public void OnMove(InputValue value)
+    {
+        moveInput = value.Get<Vector2>();
+        if (dash != null) dash.SetMoveInput(moveInput);
+    }
 
     public void OnJump(InputValue value)
     {
         if (value.isPressed) jumpBufferTimer = jumpBufferTime;
     }
 
-    public void SetMoveSpeed(float newSpeed) => moveSpeed = newSpeed;
+    public void SetMoveSpeed(float newSpeed)
+    {
+        moveSpeed = newSpeed;
+    }
 }

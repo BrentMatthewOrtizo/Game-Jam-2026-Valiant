@@ -107,4 +107,11 @@ public class GreedMeter : MonoBehaviour
 
         fillImage.sprite = stages[index];
     }
+    
+    public void ResetToZero()
+    {
+        currentGreed = 0f;
+        SetActivated(false);
+        UpdateUI();
+    }
 }
