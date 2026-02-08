@@ -25,6 +25,10 @@ public class PlayerMovement2D : MonoBehaviour
     [SerializeField] private float wallJumpLockTime = 0.12f;
     [SerializeField] private float wallJumpLerp = 10f;
 
+    public bool IsWallSliding => isWallSliding;
+    public float WallSlideSpeed => wallSlideSpeed;
+    public Vector2 MoveInput => moveInput;
+
     private Rigidbody2D rb;
     private PlayerCollision2D coll;
     private PlayerDash2D dash;
@@ -63,7 +67,7 @@ public class PlayerMovement2D : MonoBehaviour
             return;
         }
 
-        isWallSliding = wallJumpLockTimer <= 0f && ShouldWallSlide();
+        isWallSliding = (wallJumpLockTimer <= 0f) && ShouldWallSlide();
     }
 
     private void FixedUpdate()
@@ -89,7 +93,8 @@ public class PlayerMovement2D : MonoBehaviour
             rb.gravityScale = wallSlideGravityScale;
 
             float y = rb.linearVelocity.y;
-            if (y < -wallSlideSpeed) y = -wallSlideSpeed;
+            if (y > 0f) y = 0f;
+            y = Mathf.Max(y, -wallSlideSpeed);
 
             rb.linearVelocity = new Vector2(0f, y);
             return;
@@ -112,6 +117,7 @@ public class PlayerMovement2D : MonoBehaviour
 
     private void DoGroundJump()
     {
+        if (AudioManager.Instance != null) AudioManager.Instance.PlayJump();
         rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
         rb.linearVelocity += Vector2.up * jumpForce;
     }
@@ -121,14 +127,13 @@ public class PlayerMovement2D : MonoBehaviour
         float awayX;
         if (coll.OnRightWall) awayX = -1f;
         else if (coll.OnLeftWall) awayX = 1f;
-        else awayX = moveInput.x == 0f ? 1f : -Mathf.Sign(moveInput.x);
+        else awayX = (moveInput.x == 0f) ? 1f : -Mathf.Sign(moveInput.x);
 
         rb.linearVelocity = Vector2.zero;
         rb.linearVelocity = new Vector2(awayX * wallJumpForce.x, wallJumpForce.y);
 
         wallJumpLockTimer = wallJumpLockTime;
         wallControlLockTimer = wallJumpLockTime;
-
         coyoteTimer = 0f;
     }
 
@@ -147,10 +152,16 @@ public class PlayerMovement2D : MonoBehaviour
     public void OnMove(InputValue value)
     {
         moveInput = value.Get<Vector2>();
+        if (dash != null) dash.SetMoveInput(moveInput);
     }
 
     public void OnJump(InputValue value)
     {
         if (value.isPressed) jumpBufferTimer = jumpBufferTime;
+    }
+
+    public void SetMoveSpeed(float newSpeed)
+    {
+        moveSpeed = newSpeed;
     }
 }
