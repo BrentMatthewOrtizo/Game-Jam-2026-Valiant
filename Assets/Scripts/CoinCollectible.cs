@@ -26,7 +26,8 @@ public class CoinCollectible : MonoBehaviour
             if (greedAmountOverride > 0f) cachedGreed.AddGreed(greedAmountOverride);
             else cachedGreed.AddCoinGreed();
         }
-
+        
         Destroy(gameObject);
+        if (AudioManager.Instance != null) AudioManager.Instance.PlayPickupCoin();
     }
 }

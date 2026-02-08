@@ -70,6 +70,7 @@ public class PlayerDash2D : MonoBehaviour
     private void TryDash()
     {
         if (IsDashing) return;
+        if (AudioManager.Instance != null) AudioManager.Instance.PlayDash();
         if (cooldownTimer > 0f) return;
         if (!coll.OnGround && allowAirDash && hasAirDashed) return;
 

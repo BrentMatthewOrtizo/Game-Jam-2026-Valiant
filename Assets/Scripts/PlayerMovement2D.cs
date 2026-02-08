@@ -117,6 +117,7 @@ public class PlayerMovement2D : MonoBehaviour
 
     private void DoGroundJump()
     {
+        if (AudioManager.Instance != null) AudioManager.Instance.PlayJump();
         rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
         rb.linearVelocity += Vector2.up * jumpForce;
     }
