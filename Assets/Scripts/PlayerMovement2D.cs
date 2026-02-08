@@ -27,6 +27,7 @@ public class PlayerMovement2D : MonoBehaviour
 
     public bool IsWallSliding => isWallSliding;
     public float WallSlideSpeed => wallSlideSpeed;
+    public Vector2 MoveInput => moveInput;
 
     private Rigidbody2D rb;
     private PlayerCollision2D coll;
@@ -74,7 +75,7 @@ public class PlayerMovement2D : MonoBehaviour
         if (dash != null && dash.IsDashing) return;
 
         bool wantsJump = jumpBufferTimer > 0f;
-        
+
         if (wantsJump && !coll.OnGround && coll.OnWall)
         {
             jumpBufferTimer = 0f;
@@ -86,15 +87,13 @@ public class PlayerMovement2D : MonoBehaviour
             coyoteTimer = 0f;
             DoGroundJump();
         }
-        
+
         if (isWallSliding)
         {
             rb.gravityScale = wallSlideGravityScale;
 
             float y = rb.linearVelocity.y;
-            
             if (y > 0f) y = 0f;
-            
             y = Mathf.Max(y, -wallSlideSpeed);
 
             rb.linearVelocity = new Vector2(0f, y);
@@ -102,7 +101,7 @@ public class PlayerMovement2D : MonoBehaviour
         }
 
         rb.gravityScale = defaultGravityScale;
-        
+
         float targetX = moveInput.x * moveSpeed;
 
         if (wallControlLockTimer > 0f)
@@ -142,7 +141,7 @@ public class PlayerMovement2D : MonoBehaviour
         if (coll.OnGround) return false;
         if (!coll.OnWall) return false;
         if (rb.linearVelocity.y > 0.1f) return false;
-        
+
         if (coll.OnRightWall && moveInput.x > wallStickInput) return true;
         if (coll.OnLeftWall && moveInput.x < -wallStickInput) return true;
 
@@ -150,10 +149,11 @@ public class PlayerMovement2D : MonoBehaviour
     }
 
     public void OnMove(InputValue value) => moveInput = value.Get<Vector2>();
-    public void OnJump(InputValue value) { if (value.isPressed) jumpBufferTimer = jumpBufferTime; }
-    
-    public void SetMoveSpeed(float newSpeed)
+
+    public void OnJump(InputValue value)
     {
-        moveSpeed = newSpeed;
+        if (value.isPressed) jumpBufferTimer = jumpBufferTime;
     }
+
+    public void SetMoveSpeed(float newSpeed) => moveSpeed = newSpeed;
 }

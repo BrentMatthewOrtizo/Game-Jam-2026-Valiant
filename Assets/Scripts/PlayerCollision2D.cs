@@ -3,7 +3,8 @@ using UnityEngine;
 public class PlayerCollision2D : MonoBehaviour
 {
     [Header("Layers")]
-    [SerializeField] private LayerMask groundLayer;
+    [SerializeField] private LayerMask solidGroundLayer;      
+    [SerializeField] private LayerMask oneWayPlatformLayer;   
 
     [Header("Collision Checks")]
     [SerializeField] private float collisionRadius = 0.25f;
@@ -11,21 +12,27 @@ public class PlayerCollision2D : MonoBehaviour
     [SerializeField] private Vector2 rightOffset = new Vector2(0.5f, 0f);
     [SerializeField] private Vector2 leftOffset  = new Vector2(-0.5f, 0f);
 
-    public bool OnGround { get; private set; }
-    public bool OnWall { get; private set; }
+    public bool OnGround { get; private set; }        
+    public bool OnSolidGround { get; private set; }   
+    public bool OnOneWay { get; private set; }       
+
+    public bool OnWall { get; private set; }          
     public bool OnRightWall { get; private set; }
     public bool OnLeftWall { get; private set; }
-    
     public int WallSide { get; private set; }
 
     private void FixedUpdate()
     {
         Vector2 pos = transform.position;
 
-        OnGround = Physics2D.OverlapCircle(pos + bottomOffset, collisionRadius, groundLayer);
+        
+        OnSolidGround = Physics2D.OverlapCircle(pos + bottomOffset, collisionRadius, solidGroundLayer);
+        OnOneWay      = Physics2D.OverlapCircle(pos + bottomOffset, collisionRadius, oneWayPlatformLayer);
 
-        OnRightWall = Physics2D.OverlapCircle(pos + rightOffset, collisionRadius, groundLayer);
-        OnLeftWall  = Physics2D.OverlapCircle(pos + leftOffset,  collisionRadius, groundLayer);
+        OnGround = OnSolidGround || OnOneWay;
+        
+        OnRightWall = Physics2D.OverlapCircle(pos + rightOffset, collisionRadius, solidGroundLayer);
+        OnLeftWall  = Physics2D.OverlapCircle(pos + leftOffset,  collisionRadius, solidGroundLayer);
 
         OnWall = OnRightWall || OnLeftWall;
 
